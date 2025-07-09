@@ -1,9 +1,10 @@
 import requests
+import os
 from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, ContextTypes, filters
 
-TELEGRAM_TOKEN = '7776255848:AAGVPHlKM43SFUBHLgn4MoQS0OTwtw3baAQ'
-WEATHER_API_KEY = 'a61019d898eb1475d0762593c6196ddb'
+TELEGRAM_TOKEN = os.environ['TELEGRAM_TOKEN']
+WEATHER_API_KEY = os.environ['WEATHER_API_KEY']
 WEATHER_URL = 'https://api.openweathermap.org/data/2.5/forecast'
 
 
