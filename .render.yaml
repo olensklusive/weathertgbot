@@ -1,7 +1,9 @@
 services:
   - type: web
-    name: telegram-weather-bot
+    name: weathertgbot
+    env: python
     runtime: python
+    pythonVersion: 3.10.12
     buildCommand: "pip install -r requirements.txt"
     startCommand: "python tg_bot.py"
     envVars:
