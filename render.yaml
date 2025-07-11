@@ -4,6 +4,9 @@ services:
     env: docker
     plan: free
     region: oregon
-    repo: https://github.com/olensklusive/weathertgbot
-    branch: main
     dockerfilePath: ./Dockerfile
+    envVars:
+      - key: TELEGRAM_TOKEN
+        value: <7776255848:AAGVPHlKM43SFUBHLgn4MoQS0OTwtw3baAQ>
+      - key: WEATHER_API_KEY
+        value: <a61019d898eb1475d0762593c6196ddb>
