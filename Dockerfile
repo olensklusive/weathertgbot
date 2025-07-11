@@ -1,18 +1,13 @@
-FROM python:3.10-slim
+# Базовый образ с Python
+FROM python:3.12-slim
 
-# Установка зависимостей системы
-RUN apt-get update && apt-get install -y \
-    build-essential \
-    && rm -rf /var/lib/apt/lists/*
-
-# Установка рабочей директории
+# Установка зависимостей
 WORKDIR /app
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Копируем файлы
+# Копируем исходники бота
 COPY . .
-
-# Установка зависимостей Python
-RUN pip install --upgrade pip && pip install -r requirements.txt
 
 # Запуск бота
 CMD ["python", "tg_bot.py"]
