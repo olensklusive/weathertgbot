@@ -7,4 +7,3 @@ services:
     repo: https://github.com/olensklusive/weathertgbot
     branch: main
     dockerfilePath: ./Dockerfile
-    startCommand: "python tg_bot.py"
