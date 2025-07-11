@@ -1,8 +1,10 @@
 services:
-  - type: web
+  - type: worker
     name: weathertgbot
     env: docker
     plan: free
     region: oregon
-    buildCommand: ""
-    startCommand: ""
+    repo: https://github.com/olensklusive/weathertgbot
+    branch: main
+    dockerfilePath: ./Dockerfile
+    startCommand: "python tg_bot.py"
