@@ -51,7 +51,7 @@ async def get_weather(update: Update, context: ContextTypes.DEFAULT_TYPE):
             date = forecast['dt_txt']
             temp = forecast['main']['temp']
             desc = forecast['weather'][0]['description']
-            weather_info += f"📅 {date}\n🌡 {temp}°C, {desc.capitalize()}\n\n"
+            weather_info += f"📅 {date}\n🌡 {temp:.1f}°C, {desc.capitalize()}\n\n"
 
         await update.message.reply_text(weather_info)
 
