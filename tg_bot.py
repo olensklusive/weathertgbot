@@ -1,70 +1,49 @@
-import threading
-import time
-import os
-import requests
 from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, ContextTypes, filters
-from http.server import HTTPServer, BaseHTTPRequestHandler
+from get_weather import get_city_weather
 
-TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
-WEATHER_API_KEY = os.getenv("WEATHER_API_KEY")
-WEATHER_URL = 'https://api.openweathermap.org/data/2.5/forecast'
+TELEGRAM_TOKEN = '7776255848:AAGVPHlKM43SFUBHLgn4MoQS0OTwtw3baAQ'
 
-# Фейковый веб-сервер для Render (требуется, чтобы не останавливался Web Service)
-class PingHandler(BaseHTTPRequestHandler):
-    def do_GET(self):
-        self.send_response(200)
-        self.end_headers()
-        self.wfile.write(b"Bot is running.")
+user_states = {}
 
-def start_web_server():
-    port = int(os.environ.get("PORT", 8080))
-    server = HTTPServer(('', port), PingHandler)
-    server.serve_forever()
 
-# Telegram handlers
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
         f"Привет, {update.effective_user.first_name}!\n"
-        "Я покажу погоду на 5 дней. Просто напиши название города."
+        "Напиши название города, чтобы я показал погоду на ближайшие дни."
     )
 
+
 async def get_weather(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    city = update.message.text
-    try:
-        params = {
-            'q': city,
-            'appid': WEATHER_API_KEY,
-            'units': 'metric',
-            'lang': 'ru'
-        }
-        response = requests.get(WEATHER_URL, params=params)
-        data = response.json()
+    user_id = update.effective_user.id
+    text = update.message.text
 
-        if data['cod'] != '200':
-            await update.message.reply_text("Город не найден. Попробуйте еще раз.")
-            return
+    # Проверка, уточняет ли пользователь страну
+    if user_id in user_states and user_states[user_id].get('awaiting_country'):
+        city = user_states[user_id]['city']
+        country_code = text.upper()
+        _, _, report = get_city_weather(city, country_code)
+        user_states.pop(user_id)
+        await update.message.reply_text(report)
+        return
 
-        weather_info = f"Погода в {city} на 5 дней:\n\n"
+    # Обычный запрос города
+    city_name, country, report = get_city_weather(text)
 
-        for forecast in data['list'][::8]:
-            date = forecast['dt_txt']
-            temp = forecast['main']['temp']
-            desc = forecast['weather'][0]['description']
-            weather_info += f"📅 {date}\n🌡 {temp:.1f}°C, {desc.capitalize()}\n\n"
+    if city_name is None:
+        await update.message.reply_text(report)
+    else:
+        if text.lower() != city_name.lower():
+            user_states[user_id] = {'awaiting_country': True, 'city': text}
+            await update.message.reply_text(
+                f"Уточните страну для города {text} (например: RU, US, KZ):"
+            )
+        else:
+            await update.message.reply_text(report)
 
-        await update.message.reply_text(weather_info)
 
-    except Exception as e:
-        await update.message.reply_text("Ошибка. Попробуйте позже.")
-        print(f"Error: {e}")
-
-def run_bot():
+if __name__ == '__main__':
     app = ApplicationBuilder().token(TELEGRAM_TOKEN).build()
     app.add_handler(CommandHandler("start", start))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, get_weather))
     app.run_polling()
-
-if __name__ == '__main__':
-    threading.Thread(target=start_web_server).start()
-    run_bot()
